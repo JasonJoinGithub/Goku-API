@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>星枢 AI 网关 · 平台原型</title>
+<style>
+/* SECTION: base */
+:root{
+  --bg:#0a0e1a; --bg2:#101528; --card:#141b30; --card2:#1a2340;
+  --line:#243056; --txt:#e8ecf8; --sub:#8b96b8; --faint:#5b6585;
+  --acc:#6c7bff; --acc2:#9a5cff; --cyan:#3ec6ff; --green:#31d0aa; --amber:#ffb454;
+  --grad:linear-gradient(135deg,#6c7bff,#9a5cff 55%,#3ec6ff);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;line-height:1.6}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;background:
+ radial-gradient(600px 300px at 15% -5%,rgba(108,123,255,.18),transparent 60%),
+ radial-gradient(700px 340px at 85% 0%,rgba(154,92,255,.14),transparent 60%);z-index:0}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px;position:relative;z-index:1}
+a{color:var(--cyan);text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+.hidden{display:none!important}
+
+/* SECTION: header */
+header{position:sticky;top:0;z-index:50;background:rgba(10,14,26,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;gap:24px;height:60px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;letter-spacing:.5px}
+.logo .mark{width:30px;height:30px;border-radius:9px;background:var(--grad);display:grid;place-items:center;font-size:15px;color:#fff}
+.nav-links{display:flex;gap:6px;margin-left:8px}
+.nav-links button{background:none;border:none;color:var(--sub);font-size:15px;padding:8px 14px;border-radius:9px}
+.nav-links button.on{color:#fff;background:var(--card2)}
+.nav-right{margin-left:auto;display:flex;gap:10px;align-items:center}
+.pill{font-size:12px;color:var(--green);border:1px solid rgba(49,208,170,.4);padding:3px 10px;border-radius:99px;background:rgba(49,208,170,.08)}
+
+/* SECTION: buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:10px;padding:11px 22px;font-size:15px;font-weight:600;transition:.18s}
+.btn-primary{background:var(--grad);color:#fff;box-shadow:0 6px 20px rgba(108,123,255,.35)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 26px rgba(108,123,255,.5)}
+.btn-ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
+.btn-ghost:hover{border-color:var(--acc);color:#fff}
+.btn-sm{padding:7px 14px;font-size:13px;border-radius:8px}
+.btn-danger{background:rgba(255,90,110,.12);color:#ff7b8a;border:1px solid rgba(255,90,110,.3)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* SECTION: hero */
+.hero{padding:84px 0 60px;text-align:center}
+.hero .tag{display:inline-block;font-size:13px;color:var(--cyan);background:rgba(62,198,255,.08);border:1px solid rgba(62,198,255,.3);padding:5px 14px;border-radius:99px;margin-bottom:22px}
+.hero h1{font-size:clamp(30px,5.2vw,52px);line-height:1.2;font-weight:900}
+.hero h1 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.sub{color:var(--sub);font-size:17px;max-width:640px;margin:18px auto 30px}
+.hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.hero-note{margin-top:16px;font-size:13px;color:var(--faint)}
+.codebox{max-width:680px;margin:44px auto 0;background:#0d1226;border:1px solid var(--line);border-radius:14px;text-align:left;overflow:hidden}
+.codebox .bar{display:flex;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.codebox .bar i{width:10px;height:10px;border-radius:50%;background:#2b3760}
+.codebox pre{padding:16px 18px;font-size:13px;color:#a8c7fa;overflow-x:auto;font-family:ui-monospace,Menlo,Consolas,monospace}
+.codebox .k{color:#9a5cff}.codebox .s{color:#31d0aa}.codebox .c{color:#5b6585}
+
+/* SECTION: home sections */
+.sec{padding:56px 0}
+.sec h2{font-size:28px;font-weight:800;text-align:center}
+.sec .lead{color:var(--sub);text-align:center;margin:8px auto 36px;max-width:560px}
+.grid{display:grid;gap:16px}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px}
+.card h3{font-size:16px;margin-bottom:8px}
+.card p{font-size:14px;color:var(--sub)}
+.card .ic{font-size:24px;margin-bottom:10px;display:block}
+.model-chips{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.chip b{font-size:14px}
+.chip span{font-size:12px;color:var(--sub)}
+.chip .src{font-size:11px;border-radius:6px;padding:2px 8px;width:max-content;margin-top:4px}
+.src-blue{background:rgba(108,123,255,.14);color:#9fabff}
+.src-green{background:rgba(49,208,170,.14);color:var(--green)}
+.src-purple{background:rgba(154,92,255,.16);color:#c094ff}
+.src-amber{background:rgba(255,180,84,.14);color:var(--amber)}
+.pay-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.pay{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 20px;font-size:14px;color:var(--sub)}
+.trust-card{position:relative;overflow:hidden}
+.trust-card::after{content:"";position:absolute;inset:auto -30% -60% auto;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(108,123,255,.12),transparent 70%)}
+
+/* SECTION: pricing */
+.group-banner{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin-bottom:22px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.group-tabs{display:flex;gap:8px;flex-wrap:wrap}
+.group-tabs button{border:1px solid var(--line);background:transparent;color:var(--sub);border-radius:9px;padding:8px 16px;font-size:14px}
+.group-tabs button.on{background:var(--grad);border-color:transparent;color:#fff;font-weight:700}
+.ratio-note{margin-left:auto;font-size:13px;color:var(--sub)}
+.ratio-note b{color:var(--amber)}
+.price-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.mcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.mcard .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mcard .top b{font-size:15px}
+.mcard .kind{font-size:11px;color:var(--cyan);border:1px solid rgba(62,198,255,.35);border-radius:6px;padding:1px 7px}
+.mcard .vendor{font-size:12px;color:var(--faint);margin-left:auto}
+.mcard .desc{font-size:13px;color:var(--sub);margin:6px 0 10px}
+.mcard .prices{display:flex;gap:18px;flex-wrap:wrap;font-size:13px}
+.mcard .prices i{font-style:normal;color:var(--faint)}
+.mcard .prices em{font-style:normal;color:#fff;font-weight:700}
+.mcard .grp-tag{font-size:11px;color:var(--faint);margin-top:10px;border-top:1px dashed var(--line);padding-top:8px}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:34px}
+.plan{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px 22px;position:relative}
+.plan.hot{border-color:var(--acc);background:linear-gradient(180deg,rgba(108,123,255,.1),var(--card) 45%)}
+.plan .hot-tag{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--grad);color:#fff;font-size:12px;padding:3px 14px;border-radius:99px}
+.plan h3{font-size:17px}
+.plan .price{font-size:34px;font-weight:900;margin:8px 0 2px}
+.plan .price small{font-size:14px;color:var(--sub);font-weight:400}
+.plan .quota{font-size:13px;color:var(--green);margin-bottom:14px}
+.plan ul{list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.plan li{font-size:13px;color:var(--sub);padding-left:20px;position:relative}
+.plan li::before{content:"✓";position:absolute;left:0;color:var(--acc);font-weight:700}
+.plan .btn{width:100%}
+.calc{margin-top:36px}
+.calc .card{display:grid;grid-template-columns:1.2fr 1fr;gap:24px}
+.calc label{display:block;font-size:13px;color:var(--sub);margin:12px 0 5px}
+.calc select,.calc input{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:9px 12px;font-size:14px}
+.calc .out{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;justify-content:center;gap:6px}
+.calc .out .big{font-size:30px;font-weight:900;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.calc .out .line{font-size:13px;color:var(--sub);display:flex;justify-content:space-between}
+.note-eg{font-size:12px;color:var(--faint);margin-top:14px;text-align:center}
+
+/* SECTION: dashboard */
+.dash{padding:40px 0 60px}
+.dash-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:24px}
+.dash-head h2{font-size:22px}
+.dash-head .bal{margin-left:auto;text-align:right}
+.dash-head .bal b{font-size:22px;color:var(--green)}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:16px 18px}
+.stat i{font-style:normal;font-size:12px;color:var(--faint);display:block}
+.stat b{font-size:22px;font-weight:800}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px}
+.panel h3{font-size:15px;margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.panel h3 .btn{margin-left:auto}
+.dash-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{color:var(--faint);text-align:left;font-weight:500;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:8px;border-bottom:1px solid rgba(36,48,86,.5);color:var(--sub)}
+td b{color:var(--txt);font-weight:600}
+.mono{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--cyan)}
+.key-row .del{color:#ff7b8a;background:none;border:none;font-size:13px}
+.chart{display:flex;align-items:flex-end;gap:10px;height:130px;padding:6px 4px 0}
+.chart .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px}
+.chart .bar-v{width:100%;max-width:44px;background:var(--grad);border-radius:6px 6px 2px 2px;min-height:2px;transition:height .4s}
+.chart .col span{font-size:11px;color:var(--faint)}
+.empty{color:var(--faint);font-size:13px;text-align:center;padding:22px 0}
+.call-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.call-row .fld{flex:1;min-width:150px}
+.call-row label{display:block;font-size:12px;color:var(--sub);margin-bottom:5px}
+.call-row select,.call-row input{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:8px 11px;font-size:14px}
+.upstream-tag{font-size:11px;border-radius:6px;padding:2px 8px}
+
+/* SECTION: login & modal & toast */
+.login-card{max-width:400px;margin:60px auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:32px}
+.login-card h3{font-size:19px;margin-bottom:6px}
+.login-card p{font-size:13px;color:var(--sub);margin-bottom:18px}
+.login-card input{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:11px 13px;font-size:14px;margin-bottom:12px}
+.overlay{position:fixed;inset:0;background:rgba(4,7,16,.7);backdrop-filter:blur(4px);display:grid;place-items:center;z-index:80;padding:20px}
+.modal{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px;max-width:420px;width:100%}
+.modal h3{margin-bottom:14px}
+.modal .pay-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.modal .pay-opts button{border:1px solid var(--line);background:var(--bg2);color:var(--sub);border-radius:10px;padding:12px;font-size:14px}
+.modal .pay-opts button.on{border-color:var(--acc);color:#fff;background:rgba(108,123,255,.12)}
+.modal .amts{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.modal .amts button{border:1px solid var(--line);background:var(--bg2);color:var(--sub);border-radius:9px;padding:8px 16px;font-size:14px}
+.modal .amts button.on{border-color:var(--green);color:var(--green);background:rgba(49,208,170,.1)}
+#toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card2);border:1px solid var(--acc);color:var(--txt);padding:11px 22px;border-radius:11px;font-size:14px;opacity:0;transition:.3s;z-index:99;pointer-events:none;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* SECTION: footer */
+footer{border-top:1px solid var(--line);padding:34px 0;margin-top:40px}
+.foot-grid{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;font-size:12px;color:var(--faint)}
+.foot-grid p{max-width:720px}
+
+/* SECTION: responsive */
+@media (max-width:900px){
+  .g4,.stat-grid{grid-template-columns:repeat(2,1fr)}
+  .g3,.plans,.model-chips{grid-template-columns:repeat(2,1fr)}
+  .price-grid,.calc .card,.dash-cols{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .hero{padding:56px 0 40px}
+  .g3,.g4,.plans,.model-chips,.stat-grid{grid-template-columns:1fr}
+  .nav{gap:10px}.nav-links button{padding:7px 10px;font-size:13px}
+  .pill{display:none}
+  .dash-head .bal{margin-left:0;text-align:left;width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- SECTION: header -->
+<header>
+  <div class="wrap nav">
+    <div class="logo"><span class="mark">枢</span><span>星枢 AI 网关</span></div>
+    <nav class="nav-links" id="navLinks">
+      <button data-view="home" class="on">首页</button>
+      <button data-view="pricing">定价</button>
+      <button data-view="console">控制台</button>
+    </nav>
+    <div class="nav-right">
+      <span class="pill">货源透明 · 倍率公开</span>
+      <button class="btn btn-ghost btn-sm" id="navLogin">登录</button>
+      <button class="btn btn-primary btn-sm" id="navReg">免费注册</button>
+    </div>
+  </div>
+</header>
+
+<main id="viewHome">
+  <!-- SECTION: hero -->
+  <section class="hero wrap">
+    <span class="tag">🎁 注册即赠 ¥8.8 体验额度，无需绑卡</span>
+    <h1>一把密钥，畅用<span class="g">全球 + 国产合规</span>大模型</h1>
+    <p class="sub">统一兼容 OpenAI / Claude / Gemini 格式接入，官方直连与已备案国产模型分组透明计价。每笔账单公开真实上游，不掉包、可审计、能开票。</p>
+    <div class="hero-cta">
+      <button class="btn btn-primary" data-goto="console" data-primary-action>获取我的密钥</button>
+      <button class="btn btn-ghost" data-goto="pricing">查看透明价目</button>
+    </div>
+    <p class="hero-note">已接入 14 个模型 · 5 种支付方式 · 分组倍率全公示</p>
+    <div class="codebox">
+      <div class="bar"><i></i><i></i><i></i></div>
+      <pre><span class="c"># 与 OpenAI SDK 完全兼容，Base URL 换成星枢即可</span>
+<span class="k">from</span> openai <span class="k">import</span> OpenAI
+client = OpenAI(
+    base_url=<span class="s">"https://api.xingshu.demo/v1"</span>,
+    api_key=<span class="s">"sk-你的星枢密钥"</span>,
+)
+r = client.chat.completions.create(
+    model=<span class="s">"claude-sonnet-4.6"</span>, messages=[{<span class="s">"role"</span>:<span class="s">"user"</span>,<span class="s">"content"</span>:<span class="s">"你好"</span>}])</pre>
+    </div>
+  </section>
+
+  <!-- SECTION: features -->
+  <section class="sec wrap">
+    <h2>为什么选星枢</h2>
+    <p class="lead">这三件事，是竞品价目页和评测报告里最容易踩的坑，我们直接做成了产品功能。</p>
+    <div class="grid g3">
+      <div class="card"><span class="ic">🔑</span><h3>一键接入</h3><p>一个密钥调用全部已接入模型，OpenAI / Claude / Gemini 三种协议格式互转，换模型不改一行代码。</p></div>
+      <div class="card"><span class="ic">🧭</span><h3>稳定可靠</h3><p>智能调度多个上游通道，自动重试与负载均衡；云厂商托管分组提供 99.9% SLA，告别频繁报错。</p></div>
+      <div class="card"><span class="ic">📉</span><h3>用多少付多少</h3><p>按 token 实际用量计费，密钥可设额度上限与到期时间，团队用量看板一目了然，绝不失控。</p></div>
+    </div>
+  </section>
+
+  <!-- SECTION: models -->
+  <section class="sec wrap">
+    <h2>支持的 AI 模型</h2>
+    <p class="lead">每个模型标注真实上游类别，切到定价页可查看它在各分组的具体价格。</p>
+    <div class="model-chips" id="homeModels"></div>
+  </section>
+
+  <!-- SECTION: trust -->
+  <section class="sec wrap">
+    <h2>我们的差异化承诺</h2>
+    <p class="lead">针对中转站行业"掉包、暗倍率、跑路"三大痛点，逐条立规。</p>
+    <div class="grid g4" id="trustGrid"></div>
+  </section>
+
+  <!-- SECTION: pay -->
+  <section class="sec wrap" style="padding-top:10px">
+    <h2>支持多种在线支付</h2>
+    <p class="lead">支付宝、微信、Stripe、USDT、PayPal 便捷充值，未消耗余额 7 天可退。</p>
+    <div class="pay-row" id="payRow"></div>
+  </section>
+</main>
+
+<!-- SECTION: pricing view -->
+<main id="viewPricing" class="hidden">
+  <section class="sec wrap">
+    <h2>透明价目表</h2>
+    <p class="lead">同一模型在不同分组价格不同。先看清你在哪个"窗口"，再决定充不充值。</p>
+    <div class="group-banner">
+      <div class="group-tabs" id="groupTabs"></div>
+      <div class="ratio-note" id="groupNote"></div>
+    </div>
+    <div class="price-grid" id="priceGrid"></div>
+    <p class="note-eg">⚠️ 本原型中所有价格均为<b>示例值</b>，非实时报价；正式运营时以书面成本核算为准。</p>
+
+    <!-- SECTION: plans -->
+    <div class="plans" id="planGrid"></div>
+
+    <!-- SECTION: calculator -->
+    <div class="calc">
+      <div class="card">
+        <div>
+          <h3 style="font-size:17px">💡 Token 费用计算器</h3>
+          <label>选择模型</label>
+          <select id="calcModel"></select>
+          <label>输入 Token 数（你发给模型的）</label>
+          <input type="number" id="calcIn" value="2000" min="0">
+          <label>输出 Token 数（模型回给你的）</label>
+          <input type="number" id="calcOut" value="500" min="0">
+          <p style="font-size:12px;color:var(--faint);margin-top:10px">输入价格永远低于输出价格——控制回答长度是最有效的省钱开关。</p>
+        </div>
+        <div class="out">
+          <div class="line"><span>本次调用费用</span></div>
+          <div class="big" id="calcCost">¥0.0000</div>
+          <div class="line"><span>输入部分</span><b id="calcCi">¥0</b></div>
+          <div class="line"><span>输出部分</span><b id="calcCo">¥0</b></div>
+          <div class="line"><span>100 万 token 约等于</span><b>50~70 万字</b></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- SECTION: console view -->
+<main id="viewConsole" class="hidden">
+  <!-- login mock -->
+  <div id="loginPane" class="wrap">
+    <div class="login-card">
+      <h3>欢迎回来</h3>
+      <p>原型演示：账号体系为本地模拟，数据仅保存在当前浏览器。</p>
+      <input id="loginUser" placeholder="邮箱 / 用户名" value="dev@xingshu.demo">
+      <input id="loginPass" type="password" placeholder="密码" value="••••••••">
+      <button class="btn btn-primary" id="btnLogin" style="width:100%" data-primary-action>登录控制台</button>
+      <p style="font-size:12px;color:var(--faint);margin-top:12px">没有账户？<a href="#" id="lnkReg">注册即赠 ¥8.8 额度</a></p>
+    </div>
+  </div>
+
+  <div id="dashPane" class="dash wrap hidden">
+    <div class="dash-head">
+      <h2>控制台 <span style="font-size:13px;color:var(--faint)">· <span id="whoami"></span></span></h2>
+      <div class="bal">账户余额 <b id="balance">¥0.00</b> <button class="btn btn-primary btn-sm" id="btnRecharge" style="margin-left:10px">充值</button></div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat"><i>本月已花费</i><b id="stSpend">¥0.00</b></div>
+      <div class="stat"><i>累计调用次数</i><b id="stCalls">0</b></div>
+      <div class="stat"><i>活跃密钥</i><b id="stKeys">0</b></div>
+      <div class="stat"><i>当前分组倍率</i><b id="stRatio">1.0×</b></div>
+    </div>
+
+    <!-- SECTION: keys panel -->
+    <div class="dash-cols">
+      <div class="panel">
+        <h3>🔑 API 密钥管理 <button class="btn btn-ghost btn-sm" id="btnGenKey" data-primary-action>+ 新建密钥</button></h3>
+        <table id="keyTable"><thead><tr><th>名称</th><th>密钥</th><th>额度上限</th><th></th></tr></thead><tbody></tbody></table>
+        <div class="empty" id="keyEmpty">还没有密钥，点击右上角新建</div>
+      </div>
+
+      <!-- SECTION: simulate call panel -->
+      <div class="panel">
+        <h3>⚡ 模拟调用（扣费演示）</h3>
+        <div class="call-row">
+          <div class="fld"><label>模型</label><select id="callModel"></select></div>
+          <div class="fld"><label>输入 token</label><input type="number" id="callIn" value="1200"></div>
+          <div class="fld" style="flex:.6"><label>输出</label><input type="number" id="callOut" value="400"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" id="btnCall" style="margin-top:14px" data-primary-action>发起调用</button>
+        <p style="font-size:12px;color:var(--faint);margin-top:10px">按当前分组倍率从余额扣费，并在日志中公开本次走的真实上游。</p>
+      </div>
+    </div>
+
+    <!-- SECTION: usage chart -->
+    <div class="panel">
+      <h3>📈 近 6 天花费趋势（示例数据 + 你的实时调用）</h3>
+      <div class="chart" id="spendChart"></div>
+    </div>
+
+    <!-- SECTION: logs -->
+    <div class="panel">
+      <h3>📒 调用日志 · 每条公开上游来源 <button class="btn btn-ghost btn-sm" id="btnExport">导出 CSV</button></h3>
+      <div style="overflow-x:auto">
+      <table id="logTable"><thead><tr><th>时间</th><th>模型</th><th>分组</th><th>输入/输出</th><th>费用</th><th>上游来源</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="empty" id="logEmpty" style="display:none">暂无调用记录</div>
+    </div>
+
+    <div class="panel" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:13px;color:var(--sub)">退出原型演示？</span>
+      <button class="btn btn-danger btn-sm" id="btnLogout">退出登录</button>
+      <button class="btn btn-danger btn-sm" id="btnReset">清空本地演示数据</button>
+    </div>
+  </div>
+</main>
+
+<!-- SECTION: modal -->
+<div id="modal" class="overlay hidden">
+  <div class="modal">
+    <h3>充值额度</h3>
+    <div class="amts" id="amtRow"></div>
+    <div class="pay-opts" id="payOptRow"></div>
+    <button class="btn btn-primary" id="btnPayOk" style="width:100%" data-primary-action>确认支付（模拟）</button>
+    <p style="font-size:12px;color:var(--faint);margin-top:10px;text-align:center">原型演示：不产生真实扣款，到账后立即写入本地余额。</p>
+    <button class="btn btn-ghost btn-sm" id="btnPayCancel" style="width:100%;margin-top:8px">取消</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<footer>
+  <div class="wrap foot-grid">
+    <p><b>原型声明：</b>本站为产品设计原型，所有价格、账号、支付与调用均为本地浏览器内的模拟演示，不连接任何真实模型服务，不构成报价或经营承诺。"公开上游 / 倍率透明 / 资金隔离"为基于 2026 年行业调研（中转站掉包、暗分组、跑路风险）设计的差异化产品主张。</p>
+    <p style="margin-left:auto">© 2026 星枢 AI 网关 · Demo</p>
+  </div>
+</footer>
+
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

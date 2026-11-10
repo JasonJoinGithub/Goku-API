@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>星枢 AI 网关 · 平台原型</title>
+<style>
+/* SECTION: base */
+:root{
+  --bg:#0a0e1a; --bg2:#101528; --card:#141b30; --card2:#1a2340;
+  --line:#243056; --txt:#e8ecf8; --sub:#8b96b8; --faint:#5b6585;
+  --acc:#6c7bff; --acc2:#9a5cff; --cyan:#3ec6ff; --green:#31d0aa; --amber:#ffb454;
+  --grad:linear-gradient(135deg,#6c7bff,#9a5cff 55%,#3ec6ff);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;line-height:1.6}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;background:
+ radial-gradient(600px 300px at 15% -5%,rgba(108,123,255,.18),transparent 60%),
+ radial-gradient(700px 340px at 85% 0%,rgba(154,92,255,.14),transparent 60%);z-index:0}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px;position:relative;z-index:1}
+a{color:var(--cyan);text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+.hidden{display:none!important}
+
+/* SECTION: header */
+header{position:sticky;top:0;z-index:50;background:rgba(10,14,26,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;gap:24px;height:60px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;letter-spacing:.5px}
+.logo .mark{width:30px;height:30px;border-radius:9px;background:var(--grad);display:grid;place-items:center;font-size:15px;color:#fff}
+.nav-links{display:flex;gap:6px;margin-left:8px}
+.nav-links button{background:none;border:none;color:var(--sub);font-size:15px;padding:8px 14px;border-radius:9px}
+.nav-links button.on{color:#fff;background:var(--card2)}
+.nav-right{margin-left:auto;display:flex;gap:10px;align-items:center}
+.pill{font-size:12px;color:var(--green);border:1px solid rgba(49,208,170,.4);padding:3px 10px;border-radius:99px;background:rgba(49,208,170,.08)}
+
+/* SECTION: buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:10px;padding:11px 22px;font-size:15px;font-weight:600;transition:.18s}
+.btn-primary{background:var(--grad);color:#fff;box-shadow:0 6px 20px rgba(108,123,255,.35)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 26px rgba(108,123,255,.5)}
+.btn-ghost{background:transparent;color:var(--txt);border:1px solid var(--line)}
+.btn-ghost:hover{border-color:var(--acc);color:#fff}
+.btn-sm{padding:7px 14px;font-size:13px;border-radius:8px}
+.btn-danger{background:rgba(255,90,110,.12);color:#ff7b8a;border:1px solid rgba(255,90,110,.3)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* SECTION: hero */
+.hero{padding:84px 0 60px;text-align:center}
+.hero .tag{display:inline-block;font-size:13px;color:var(--cyan);background:rgba(62,198,255,.08);border:1px solid rgba(62,198,255,.3);padding:5px 14px;border-radius:99px;margin-bottom:22px}
+.hero h1{font-size:clamp(30px,5.2vw,52px);line-height:1.2;font-weight:900}
+.hero h1 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.sub{color:var(--sub);font-size:17px;max-width:640px;margin:18px auto 30px}
+.hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.hero-note{margin-top:16px;font-size:13px;color:var(--faint)}
+.codebox{max-width:680px;margin:44px auto 0;background:#0d1226;border:1px solid var(--line);border-radius:14px;text-align:left;overflow:hidden}
+.codebox .bar{display:flex;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.codebox .bar i{width:10px;height:10px;border-radius:50%;background:#2b3760}
+.codebox pre{padding:16px 18px;font-size:13px;color:#a8c7fa;overflow-x:auto;font-family:ui-monospace,Menlo,Consolas,monospace}
+.codebox .k{color:#9a5cff}.codebox .s{color:#31d0aa}.codebox .c{color:#5b6585}
+
+/* SECTION: home sections */
+.sec{padding:56px 0}
+.sec h2{font-size:28px;font-weight:800;text-align:center}
+.sec .lead{color:var(--sub);text-align:center;margin:8px auto 36px;max-width:560px}
+.grid{display:grid;gap:16px}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px}
+.card h3{font-size:16px;margin-bottom:8px}
+.card p{font-size:14px;color:var(--sub)}
+.card .ic{font-size:24px;margin-bottom:10px;display:block}
+.model-chips{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.chip b{font-size:14px}
+.chip span{font-size:12px;color:var(--sub)}
+.chip .src{font-size:11px;border-radius:6px;padding:2px 8px;width:max-content;margin-top:4px}
+.src-blue{background:rgba(108,123,255,.14);color:#9fabff}
+.src-green{background:rgba(49,208,170,.14);color:var(--green)}
+.src-purple{background:rgba(154,92,255,.16);color:#c094ff}
+.src-amber{background:rgba(255,180,84,.14);color:var(--amber)}
+.pay-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.pay{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:10px 20px;font-size:14px;color:var(--sub)}
+.trust-card{position:relative;overflow:hidden}
+.trust-card::after{content:"";position:absolute;inset:auto -30% -60% auto;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(108,123,255,.12),transparent 70%)}
+
+/* SECTION: pricing */
+.group-banner{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin-bottom:22px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.group-tabs{display:flex;gap:8px;flex-wrap:wrap}
+.group-tabs button{border:1px solid var(--line);background:transparent;color:var(--sub);border-radius:9px;padding:8px 16px;font-size:14px}
+.group-tabs button.on{background:var(--grad);border-color:transparent;color:#fff;font-weight:700}
+.ratio-note{margin-left:auto;font-size:13px;color:var(--sub)}
+.ratio-note b{color:var(--amber)}
+.price-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.mcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.mcard .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mcard .top b{font-size:15px}
+.mcard .kind{font-size:11px;color:var(--cyan);border:1px solid rgba(62,198,255,.35);border-radius:6px;padding:1px 7px}
+.mcard .vendor{font-size:12px;color:var(--faint);margin-left:auto}
+.mcard .desc{font-size:13px;color:var(--sub);margin:6px 0 10px}
+.mcard .prices{display:flex;gap:18px;flex-wrap:wrap;font-size:13px}
+.mcard .prices i{font-style:normal;color:var(--faint)}
+.mcard .prices em{font-style:normal;color:#fff;font-weight:700}
+.mcard .grp-tag{font-size:11px;color:var(--faint);margin-top:10px;border-top:1px dashed var(--line);padding-top:8px}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:34px}
+.plan{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px 22px;position:relative}
+.plan.hot{border-color:var(--acc);background:linear-gradient(180deg,rgba(108,123,255,.1),var(--card) 45%)}
+.plan .hot-tag{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--grad);color:#fff;font-size:12px;padding:3px 14px;border-radius:99px}
+.plan h3{font-size:17px}
+.plan .price{font-size:34px;font-weight:900;margin:8px 0 2px}
+.plan .price small{font-size:14px;color:var(--sub);font-weight:400}
+.plan .quota{font-size:13px;color:var(--green);margin-bottom:14px}
+.plan ul{list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.plan li{font-size:13px;color:var(--sub);padding-left:20px;position:relative}
+.plan li::before{content:"✓";position:absolute;left:0;color:var(--acc);font-weight:700}
+.plan .btn{width:100%}
+.calc{margin-top:36px}
+.calc .card{display:grid;grid-template-columns:1.2fr 1fr;gap:24px}
+.calc label{display:block;font-size:13px;color:var(--sub);margin:12px 0 5px}
+.calc select,.calc input{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:9px 12px;font-size:14px}
+.calc .out{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;justify-content:center;gap:6px}
+.calc .out .big{font-size:30px;font-weight:900;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.calc .out .line{font-size:13px;color:var(--sub);display:flex;justify-content:space-between}
+.note-eg{font-size:12px;color:var(--faint);margin-top:14px;text-align:center}
+
+/* SECTION: dashboard */
+.dash{padding:40px 0 60px}
+.dash-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:24px}
+.dash-head h2{font-size:22px}
+.dash-head .bal{margin-left:auto;text-align:right}
+.dash-head .bal b{font-size:22px;color:var(--green)}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:16px 18px}
+.stat i{font-style:normal;font-size:12px;color:var(--faint);display:block}
+.stat b{font-size:22px;font-weight:800}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px}
+.panel h3{font-size:15px;margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.panel h3 .btn{margin-left:auto}
+.dash-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{color:var(--faint);text-align:left;font-weight:500;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:8px;border-bottom:1px solid rgba(36,48,86,.5);color:var(--sub)}
+td b{color:var(--txt);font-weight:600}
+.mono{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;color:var(--cyan)}
+.key-row .del{color:#ff7b8a;background:none;border:none;font-size:13px}
+.chart{display:flex;align-items:flex-end;gap:10px;height:130px;padding:6px 4px 0}
+.chart .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px}
+.chart .bar-v{width:100%;max-width:44px;background:var(--grad);border-radius:6px 6px 2px 2px;min-height:2px;transition:height .4s}
+.chart .col span{font-size:11px;color:var(--faint)}
+.empty{color:var(--faint);font-size:13px;text-align:center;padding:22px 0}
+.call-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.call-row .fld{flex:1;min-width:150px}
+.call-row label{display:block;font-size:12px;color:var(--sub);margin-bottom:5px}
+.call-row select,.call-row input{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:8px 11px;font-size:14px}
+.upstream-tag{font-size:11px;border-radius:6px;padding:2px 8px}
+
+/* SECTION: login & modal & toast */
+.login-card{max-width:400px;margin:60px auto;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:32px}
+.login-card h3{font-size:19px;margin-bottom:6px}
+.login-card p{font-size:13px;color:var(--sub);margin-bottom:18px}
+.login-card input{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:11px 13px;font-size:14px;margin-bottom:12px}
+.overlay{position:fixed;inset:0;background:rgba(4,7,16,.7);backdrop-filter:blur(4px);display:grid;place-items:center;z-index:80;padding:20px}
+.modal{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px;max-width:420px;width:100%}
+.modal h3{margin-bottom:14px}
+.modal .pay-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.modal .pay-opts button{border:1px solid var(--line);background:var(--bg2);color:var(--sub);border-radius:10px;padding:12px;font-size:14px}
+.modal .pay-opts button.on{border-color:var(--acc);color:#fff;background:rgba(108,123,255,.12)}
+.modal .amts{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.modal .amts button{border:1px solid var(--line);background:var(--bg2);color:var(--sub);border-radius:9px;padding:8px 16px;font-size:14px}
+.modal .amts button.on{border-color:var(--green);color:var(--green);background:rgba(49,208,170,.1)}
+#toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card2);border:1px solid var(--acc);color:var(--txt);padding:11px 22px;border-radius:11px;font-size:14px;opacity:0;transition:.3s;z-index:99;pointer-events:none;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* SECTION: footer */
+footer{border-top:1px solid var(--line);padding:34px 0;margin-top:40px}
+.foot-grid{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;font-size:12px;color:var(--faint)}
+.foot-grid p{max-width:720px}
+
+/* SECTION: responsive */
+@media (max-width:900px){
+  .g4,.stat-grid{grid-template-columns:repeat(2,1fr)}
+  .g3,.plans,.model-chips{grid-template-columns:repeat(2,1fr)}
+  .price-grid,.calc .card,.dash-cols{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .hero{padding:56px 0 40px}
+  .g3,.g4,.plans,.model-chips,.stat-grid{grid-template-columns:1fr}
+  .nav{gap:10px}.nav-links button{padding:7px 10px;font-size:13px}
+  .pill{display:none}
+  .dash-head .bal{margin-left:0;text-align:left;width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- SECTION: header -->
+<header>
+  <div class="wrap nav">
+    <div class="logo"><span class="mark">枢</span><span>星枢 AI 网关</span></div>
+    <nav class="nav-links" id="navLinks">
+      <button data-view="home" class="on">首页</button>
+      <button data-view="pricing">定价</button>
+      <button data-view="console">控制台</button>
+    </nav>
+    <div class="nav-right">
+      <span class="pill">货源透明 · 倍率公开</span>
+      <button class="btn btn-ghost btn-sm" id="navLogin">登录</button>
+      <button class="btn btn-primary btn-sm" id="navReg">免费注册</button>
+    </div>
+  </div>
+</header>
+
+<main id="viewHome">
+  <!-- SECTION: hero -->
+  <section class="hero wrap">
+    <span class="tag">🎁 注册即赠 ¥8.8 体验额度，无需绑卡</span>
+    <h1>一把密钥，畅用<span class="g">全球 + 国产合规</span>大模型</h1>
+    <p class="sub">统一兼容 OpenAI / Claude / Gemini 格式接入，官方直连与已备案国产模型分组透明计价。每笔账单公开真实上游，不掉包、可审计、能开票。</p>
+    <div class="hero-cta">
+      <button class="btn btn-primary" data-goto="console" data-primary-action>获取我的密钥</button>
+      <button class="btn btn-ghost" data-goto="pricing">查看透明价目</button>
+    </div>
+    <p class="hero-note">已接入 14 个模型 · 5 种支付方式 · 分组倍率全公示</p>
+    <div class="codebox">
+      <div class="bar"><i></i><i></i><i></i></div>
+      <pre><span class="c"># 与 OpenAI SDK 完全兼容，Base URL 换成星枢即可</span>
+<span class="k">from</span> openai <span class="k">import</span> OpenAI
+client = OpenAI(
+    base_url=<span class="s">"https://api.xingshu.demo/v1"</span>,
+    api_key=<span class="s">"sk-你的星枢密钥"</span>,
+)
+r = client.chat.completions.create(
+    model=<span class="s">"claude-sonnet-4.6"</span>, messages=[{<span class="s">"role"</span>:<span class="s">"user"</span>,<span class="s">"content"</span>:<span class="s">"你好"</span>}])</pre>
+    </div>
+  </section>
+
+  <!-- SECTION: features -->
+  <section class="sec wrap">
+    <h2>为什么选星枢</h2>
+    <p class="lead">这三件事，是竞品价目页和评测报告里最容易踩的坑，我们直接做成了产品功能。</p>
+    <div class="grid g3">
+      <div class="card"><span class="ic">🔑</span><h3>一键接入</h3><p>一个密钥调用全部已接入模型，OpenAI / Claude / Gemini 三种协议格式互转，换模型不改一行代码。</p></div>
+      <div class="card"><span class="ic">🧭</span><h3>稳定可靠</h3><p>智能调度多个上游通道，自动重试与负载均衡；云厂商托管分组提供 99.9% SLA，告别频繁报错。</p></div>
+      <div class="card"><span class="ic">📉</span><h3>用多少付多少</h3><p>按 token 实际用量计费，密钥可设额度上限与到期时间，团队用量看板一目了然，绝不失控。</p></div>
+    </div>
+  </section>
+
+  <!-- SECTION: models -->
+  <section class="sec wrap">
+    <h2>支持的 AI 模型</h2>
+    <p class="lead">每个模型标注真实上游类别，切到定价页可查看它在各分组的具体价格。</p>
+    <div class="model-chips" id="homeModels"></div>
+  </section>
+
+  <!-- SECTION: trust -->
+  <section class="sec wrap">
+    <h2>我们的差异化承诺</h2>
+    <p class="lead">针对中转站行业"掉包、暗倍率、跑路"三大痛点，逐条立规。</p>
+    <div class="grid g4" id="trustGrid"></div>
+  </section>
+
+  <!-- SECTION: pay -->
+  <section class="sec wrap" style="padding-top:10px">
+    <h2>支持多种在线支付</h2>
+    <p class="lead">支付宝、微信、Stripe、USDT、PayPal 便捷充值，未消耗余额 7 天可退。</p>
+    <div class="pay-row" id="payRow"></div>
+  </section>
+</main>
+
+<!-- SECTION: pricing view -->
+<main id="viewPricing" class="hidden">
+  <section class="sec wrap">
+    <h2>透明价目表</h2>
+    <p class="lead">同一模型在不同分组价格不同。先看清你在哪个"窗口"，再决定充不充值。</p>
+    <div class="group-banner">
+      <div class="group-tabs" id="groupTabs"></div>
+      <div class="ratio-note" id="groupNote"></div>
+    </div>
+    <div class="price-grid" id="priceGrid"></div>
+    <p class="note-eg">⚠️ 本原型中所有价格均为<b>示例值</b>，非实时报价；正式运营时以书面成本核算为准。</p>
+
+    <!-- SECTION: plans -->
+    <div class="plans" id="planGrid"></div>
+
+    <!-- SECTION: calculator -->
+    <div class="calc">
+      <div class="card">
+        <div>
+          <h3 style="font-size:17px">💡 Token 费用计算器</h3>
+          <label>选择模型</label>
+          <select id="calcModel"></select>
+          <label>输入 Token 数（你发给模型的）</label>
+          <input type="number" id="calcIn" value="2000" min="0">
+          <label>输出 Token 数（模型回给你的）</label>
+          <input type="number" id="calcOut" value="500" min="0">
+          <p style="font-size:12px;color:var(--faint);margin-top:10px">输入价格永远低于输出价格——控制回答长度是最有效的省钱开关。</p>
+        </div>
+        <div class="out">
+          <div class="line"><span>本次调用费用</span></div>
+          <div class="big" id="calcCost">¥0.0000</div>
+          <div class="line"><span>输入部分</span><b id="calcCi">¥0</b></div>
+          <div class="line"><span>输出部分</span><b id="calcCo">¥0</b></div>
+          <div class="line"><span>100 万 token 约等于</span><b>50~70 万字</b></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- SECTION: console view -->
+<main id="viewConsole" class="hidden">
+  <!-- login mock -->
+  <div id="loginPane" class="wrap">
+    <div class="login-card">
+      <h3>欢迎回来</h3>
+      <p>原型演示：账号体系为本地模拟，数据仅保存在当前浏览器。</p>
+      <input id="loginUser" placeholder="邮箱 / 用户名" value="dev@xingshu.demo">
+      <input id="loginPass" type="password" placeholder="密码" value="••••••••">
+      <button class="btn btn-primary" id="btnLogin" style="width:100%" data-primary-action>登录控制台</button>
+      <p style="font-size:12px;color:var(--faint);margin-top:12px">没有账户？<a href="#" id="lnkReg">注册即赠 ¥8.8 额度</a></p>
+    </div>
+  </div>
+
+  <div id="dashPane" class="dash wrap hidden">
+    <div class="dash-head">
+      <h2>控制台 <span style="font-size:13px;color:var(--faint)">· <span id="whoami"></span></span></h2>
+      <div class="bal">账户余额 <b id="balance">¥0.00</b> <button class="btn btn-primary btn-sm" id="btnRecharge" style="margin-left:10px">充值</button></div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat"><i>本月已花费</i><b id="stSpend">¥0.00</b></div>
+      <div class="stat"><i>累计调用次数</i><b id="stCalls">0</b></div>
+      <div class="stat"><i>活跃密钥</i><b id="stKeys">0</b></div>
+      <div class="stat"><i>当前分组倍率</i><b id="stRatio">1.0×</b></div>
+    </div>
+
+    <!-- SECTION: keys panel -->
+    <div class="dash-cols">
+      <div class="panel">
+        <h3>🔑 API 密钥管理 <button class="btn btn-ghost btn-sm" id="btnGenKey" data-primary-action>+ 新建密钥</button></h3>
+        <table id="keyTable"><thead><tr><th>名称</th><th>密钥</th><th>额度上限</th><th></th></tr></thead><tbody></tbody></table>
+        <div class="empty" id="keyEmpty">还没有密钥，点击右上角新建</div>
+      </div>
+
+      <!-- SECTION: simulate call panel -->
+      <div class="panel">
+        <h3>⚡ 模拟调用（扣费演示）</h3>
+        <div class="call-row">
+          <div class="fld"><label>模型</label><select id="callModel"></select></div>
+          <div class="fld"><label>输入 token</label><input type="number" id="callIn" value="1200"></div>
+          <div class="fld" style="flex:.6"><label>输出</label><input type="number" id="callOut" value="400"></div>
+        </div>
+        <button class="btn btn-primary btn-sm" id="btnCall" style="margin-top:14px" data-primary-action>发起调用</button>
+        <p style="font-size:12px;color:var(--faint);margin-top:10px">按当前分组倍率从余额扣费，并在日志中公开本次走的真实上游。</p>
+      </div>
+    </div>
+
+    <!-- SECTION: usage chart -->
+    <div class="panel">
+      <h3>📈 近 6 天花费趋势（示例数据 + 你的实时调用）</h3>
+      <div class="chart" id="spendChart"></div>
+    </div>
+
+    <!-- SECTION: logs -->
+    <div class="panel">
+      <h3>📒 调用日志 · 每条公开上游来源 <button class="btn btn-ghost btn-sm" id="btnExport">导出 CSV</button></h3>
+      <div style="overflow-x:auto">
+      <table id="logTable"><thead><tr><th>时间</th><th>模型</th><th>分组</th><th>输入/输出</th><th>费用</th><th>上游来源</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="empty" id="logEmpty" style="display:none">暂无调用记录</div>
+    </div>
+
+    <div class="panel" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:13px;color:var(--sub)">退出原型演示？</span>
+      <button class="btn btn-danger btn-sm" id="btnLogout">退出登录</button>
+      <button class="btn btn-danger btn-sm" id="btnReset">清空本地演示数据</button>
+    </div>
+  </div>
+</main>
+
+<!-- SECTION: modal -->
+<div id="modal" class="overlay hidden">
+  <div class="modal">
+    <h3>充值额度</h3>
+    <div class="amts" id="amtRow"></div>
+    <div class="pay-opts" id="payOptRow"></div>
+    <button class="btn btn-primary" id="btnPayOk" style="width:100%" data-primary-action>确认支付（模拟）</button>
+    <p style="font-size:12px;color:var(--faint);margin-top:10px;text-align:center">原型演示：不产生真实扣款，到账后立即写入本地余额。</p>
+    <button class="btn btn-ghost btn-sm" id="btnPayCancel" style="width:100%;margin-top:8px">取消</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<footer>
+  <div class="wrap foot-grid">
+    <p><b>原型声明：</b>本站为产品设计原型，所有价格、账号、支付与调用均为本地浏览器内的模拟演示，不连接任何真实模型服务，不构成报价或经营承诺。"公开上游 / 倍率透明 / 资金隔离"为基于 2026 年行业调研（中转站掉包、暗分组、跑路风险）设计的差异化产品主张。</p>
+    <p style="margin-left:auto">© 2026 星枢 AI 网关 · Demo</p>
+  </div>
+</footer>
+
+<script>
+/* SECTION: data - 平台示例数据（价格均为示例值，非实时报价） */
+window.XS_DATA = {
+  brand: { name: "星枢 AI 网关", en: "XingShu Gateway", slogan: "一把密钥，畅用全球模型" },
+
+  /* SECTION: groups - 分组即"收银窗口"：不同分组走不同上游、倍率不同、价格不同 */
+  groups: [
+    { id: "official", name: "官方直连分组", ratio: 1.0, source: "官转 · 企业账号直连上游官方 API", desc: "价格贴近官方原价，每笔账单可审计", tone: "blue" },
+    { id: "cn", name: "国产合规模型分组", ratio: 0.85, source: "国产备案模型官方 API / 本地智算中心", desc: "数据不出境，支持发票与算力券抵扣", tone: "green" },
+    { id: "cloud", name: "云厂商托管分组", ratio: 1.15, source: "Azure / Bedrock / Vertex 协议接入", desc: "SLA 保障，高峰期优先调度", tone: "purple" },
+    { id: "trial", name: "体验分组", ratio: 0.6, source: "限量试用池（高峰时段限速）", desc: "新用户赠送额度专用", tone: "amber" }
+  ],
+
+  /* SECTION: models - 模型目录；prices 为每 100 万 token 人民币示例价 */
+  models: [
+    { id: "claude-opus", name: "Claude Opus 4.7", vendor: "Anthropic", kind: "chat", input: 36.75, output: 183.75, cached: 7.35, groups: ["official", "cloud"], desc: "旗舰推理与复杂编程" },
+    { id: "claude-sonnet", name: "Claude Sonnet 4.6", vendor: "Anthropic", kind: "chat", input: 5.5, output: 27.5, cached: 0.55, groups: ["official", "cloud", "trial"], desc: "均衡全能，编程首选" },
+    { id: "claude-haiku", name: "Claude Haiku 4.5", vendor: "Anthropic", kind: "chat", input: 1.43, output: 7.15, cached: 0.14, groups: ["official", "trial"], desc: "极速响应、低成本" },
+    { id: "gpt5", name: "GPT-5", vendor: "OpenAI", kind: "chat", input: 6.9, output: 55.2, cached: 0.69, groups: ["official", "cloud"], desc: "通用旗舰多模态" },
+    { id: "gpt41", name: "GPT-4.1", vendor: "OpenAI", kind: "chat", input: 1.38, output: 5.52, cached: 0.28, groups: ["official", "trial"], desc: "稳定高性能通用模型" },
+    { id: "codex", name: "GPT-5.3-Codex", vendor: "OpenAI", kind: "code", input: 0.525, output: 4.2, cached: 0.053, groups: ["cloud"], desc: "编程代理专用" },
+    { id: "deepseek", name: "DeepSeek V4-Pro", vendor: "DeepSeek", kind: "chat", input: 3.0, output: 6.0, cached: 0.025, groups: ["cn"], desc: "代码与深度推理，国产备案" },
+    { id: "deepseek-flash", name: "DeepSeek V4-Flash", vendor: "DeepSeek", kind: "chat", input: 1.0, output: 2.0, cached: 0.02, groups: ["cn", "trial"], desc: "高频批量处理，国产备案" },
+    { id: "qwen", name: "Qwen3-Max", vendor: "阿里通义", kind: "chat", input: 2.5, output: 10.0, cached: 0.5, groups: ["cn"], desc: "中文原生，国产备案" },
+    { id: "glm", name: "GLM-5.2", vendor: "智谱AI", kind: "chat", input: 8.0, output: 28.0, cached: 2.0, groups: ["cn"], desc: "长文本复杂推理，国产备案" },
+    { id: "kimi", name: "Kimi K3", vendor: "月之暗面", kind: "chat", input: 4.0, output: 16.0, cached: 0.8, groups: ["cn"], desc: "超长上下文，国产备案" },
+    { id: "doubao", name: "豆包 Seed-2.0-Pro", vendor: "字节火山", kind: "chat", input: 3.2, output: 16.0, cached: 0.8, groups: ["cn"], desc: "多模态企业场景，国产备案" },
+    { id: "gpt-image", name: "GPT-Image 2", vendor: "OpenAI", kind: "image", input: 27.6, output: 110.4, groups: ["official", "cloud"], desc: "图像生成（按 token 计）" },
+    { id: "seedance", name: "Seedance 视频", vendor: "字节火山", kind: "video", input: 0, output: 0, perUnit: "约 ¥0.35 / 秒（示例）", groups: ["cn"], desc: "视频生成，按秒计费" }
+  ],
+
+  kindLabel: { chat: "对话", code: "编程", image: "图像", video: "视频" },
+
+  /* SECTION: plans - 订阅三档（示例价） */
+  plans: [
+    { name: "体验版", price: 0, quota: "注册赠 ¥8.8 额度", feats: ["体验分组（限速）", "全部国产合规模型", "社区支持"], hot: false },
+    { name: "开发者版", price: 99, unit: "/月", quota: "含 ¥120 调用额度", feats: ["官方直连 + 国产合规双分组", "倍率公开账单可导出", "工单支持 2h 响应", "额度月结不清零滚动 30 天"], hot: true },
+    { name: "团队版", price: 499, unit: "/月", quota: "含 ¥700 调用额度", feats: ["云厂商托管分组优先调度", "99.9% SLA 协议", "专属采购：可申请算力券抵扣", "发票与对账单，子密钥限额"], hot: false }
+  ],
+
+  /* SECTION: pay - 支付方式（演示） */
+  payments: [
+    { name: "支付宝", tone: "blue" }, { name: "微信支付", tone: "green" },
+    { name: "Stripe", tone: "purple" }, { name: "USDT (TRC20)", tone: "amber" },
+    { name: "PayPal", tone: "cyan" }
+  ],
+
+  /* SECTION: trust - 差异化承诺（基于本会话竞品调研结论设计） */
+  trust: [
+    { title: "每笔账单公开真实上游", body: "调用日志逐条标注请求最终去了官转 / 云厂商 / 国产官方哪条通道。行业评测发现部分中转站存在模型掉包，我们把可验证性做成默认功能。", icon: "🔍" },
+    { title: "分组与倍率全透明", body: "同模型在不同分组的价格、倍率、限速规则全部公示在价目页，不用先充值再发现自己是高价分组。", icon: "📊" },
+    { title: "国产合规模型专区", body: "已备案国产模型独立分组，数据不出境、可开发票、支持本地算力与政府算力券抵扣，政企项目可直接采购。", icon: "🛡️" },
+    { title: "资金与用量兜底", body: "充值余额与运营资金隔离，未消耗额度 7 天可退；配额上限 + 熔断，团队账单绝不失控。", icon: "💰" }
+  ],
+
+  /* SECTION: seed - 演示用量种子（近 6 天花费，单位元） */
+  seedSpend: [3.2, 0, 5.8, 1.4, 0, 7.6],
+  seedLogs: [
+    { t: "10-28 21:14", model: "Claude Sonnet 4.6", group: "官方直连分组", tin: 1800, tout: 640, cost: 0.0263, up: "官转 · Anthropic 直连" },
+    { t: "10-28 20:41", model: "DeepSeek V4-Pro", group: "国产合规模型分组", tin: 4200, tout: 1500, cost: 0.0215, up: "国产官方 API · 已备案" },
+    { t: "10-27 15:02", model: "GPT-4.1", group: "官方直连分组", tin: 900, tout: 320, cost: 0.0031, up: "官转 · OpenAI 直连" }
+  ]
+};
+
+</script>
+<script>
+/* SECTION: app - 星枢原型交互逻辑（数据保存在当前浏览器 localStorage） */
+(function () {
+  "use strict";
+  var D = window.XS_DATA;
+  var $ = function (id) { return document.getElementById(id); };
+  var LS = "xingshu_state_v1";
+
+  /* SECTION: global state */
+  var group = "official"; // 当前选中分组，定价页与控制台共享
+  function curGroup() { return D.groups.filter(function (g) { return g.id === group; })[0]; }
+  function yuan(n) { return "¥" + n.toFixed(2); }
+  function yuan4(n) { return "¥" + n.toFixed(4); }
+
+  var store = {
+    load: function () {
+      try { return JSON.parse(localStorage.getItem(LS)) || null; } catch (e) { return null; }
+    },
+    save: function (s) { localStorage.setItem(LS, JSON.stringify(s)); }
+  };
+  var st = store.load();
+
+  /* SECTION: toast */
+  var tmr;
+  function toast(msg) {
+    var t = $("toast"); t.textContent = msg; t.classList.add("show");
+    clearTimeout(tmr); tmr = setTimeout(function () { t.classList.remove("show"); }, 2600);
+  }
+
+  /* SECTION: view switch */
+  function showView(v) {
+    ["home", "pricing", "console"].forEach(function (x) {
+      $("view" + x.charAt(0).toUpperCase() + x.slice(1)).classList.toggle("hidden", x !== v);
+    });
+    document.querySelectorAll("#navLinks button").forEach(function (b) {
+      b.classList.toggle("on", b.dataset.view === v);
+    });
+    if (v === "console") renderConsole();
+    window.scrollTo(0, 0);
+  }
+  document.querySelectorAll("#navLinks button").forEach(function (b) {
+    b.addEventListener("click", function () { showView(b.dataset.view); });
+  });
+  document.querySelectorAll("[data-goto]").forEach(function (b) {
+    b.addEventListener("click", function () { showView(b.dataset.goto); });
+  });
+  $("navLogin").addEventListener("click", function () { showView("console"); });
+  $("navReg").addEventListener("click", function () { showView("console"); registerDemo(); });
+
+  /* SECTION: home rendering */
+  function srcClass(tone) { return { blue: "src-blue", green: "src-green", purple: "src-purple", amber: "src-amber" }[tone] || "src-blue"; }
+  (function renderHome() {
+    var html = D.models.map(function (m) {
+      var g = D.groups.filter(function (x) { return x.id === m.groups[0]; })[0];
+      return '<div class="chip"><b>' + m.name + '</b><span>' + m.desc + '</span>' +
+        '<span class="src ' + srcClass(g.tone) + '">' + g.source.split(" ·")[0] + " · " + m.vendor + "</span></div>";
+    }).join("");
+    $("homeModels").innerHTML = html;
+    $("trustGrid").innerHTML = D.trust.map(function (t) {
+      return '<div class="card trust-card"><span class="ic">' + t.icon + '</span><h3>' + t.title + '</h3><p>' + t.body + "</p></div>";
+    }).join("");
+    $("payRow").innerHTML = D.payments.map(function (p) { return '<span class="pay">' + p.name + "</span>"; }).join("");
+  })();
+
+  /* SECTION: pricing - group tabs */
+  function renderGroupTabs() {
+    $("groupTabs").innerHTML = D.groups.map(function (g) {
+      return '<button data-g="' + g.id + '" class="' + (g.id === group ? "on" : "") + '">' + g.name + "</button>";
+    }).join("");
+    document.querySelectorAll("#groupTabs button").forEach(function (b) {
+      b.addEventListener("click", function () { group = b.dataset.g; renderAll(); });
+    });
+    var g = curGroup();
+    $("groupNote").innerHTML = "当前查看分组：<b>" + g.name + "</b>，倍率为：<b>" + g.ratio +
+      "</b>　" + g.source + "　" + g.desc;
+  }
+
+  /* SECTION: pricing - model cards */
+  function renderPrices() {
+    var g = curGroup();
+    var list = D.models.filter(function (m) { return m.groups.indexOf(group) >= 0; });
+    if (!list.length) { $("priceGrid").innerHTML = '<div class="empty" style="grid-column:1/-1">该分组暂未上架模型，请切换其他分组</div>'; return; }
+    $("priceGrid").innerHTML = list.map(function (m) {
+      var prices = m.kind === "video"
+        ? '<span>' + m.perUnit + "</span>"
+        : '<span><i>输入</i> <em>' + yuan4(m.input * g.ratio) + "</em> / 1M Tokens</span>" +
+          '<span><i>补全</i> <em>' + yuan4(m.output * g.ratio) + "</em> / 1M Tokens</span>" +
+          (m.cached ? '<span><i>缓存命中</i> <em>' + yuan4(m.cached * g.ratio) + "</em> / 1M</span>" : "");
+      var tag = m.kind === "video" ? "" :
+        '<div class="grp-tag">基准价 输入' + yuan4(m.input) + " × 倍率 " + g.ratio + " · 计费类型：按量计费</div>";
+      return '<div class="mcard"><div class="top"><b>' + m.name + '</b><span class="kind">' + D.kindLabel[m.kind] +
+        '</span><span class="vendor">' + m.vendor + '</span></div><div class="desc">' + m.desc +
+        '</div><div class="prices">' + prices + "</div>" + tag + "</div>";
+    }).join("");
+  }
+
+  /* SECTION: pricing - plans */
+  (function renderPlans() {
+    $("planGrid").innerHTML = D.plans.map(function (p) {
+      return '<div class="plan' + (p.hot ? ' hot"><span class="hot-tag">最受欢迎</span' : "><") + "h3>" + p.name +
+        '</h3><div class="price">¥' + p.price + (p.price ? '<small>' + p.unit + "</small>" : "") +
+        '</div><div class="quota">' + p.quota + '</div><ul>' +
+        p.feats.map(function (f) { return "<li>" + f + "</li>"; }).join("") +
+        '</ul><button class="btn ' + (p.hot ? "btn-primary" : "btn-ghost") + '" data-plan="' + p.name + '">选择' + p.name + "</button></div>";
+    }).join("");
+    document.querySelectorAll("[data-plan]").forEach(function (b) {
+      b.addEventListener("click", function () { toast("原型演示：已选择「" + b.dataset.plan + "」，正式版本将跳转支付"); });
+    });
+  })();
+
+  /* SECTION: calculator */
+  function fillModelSelect(sel, withGroupOnly) {
+    sel.innerHTML = D.models.filter(function (m) { return m.kind !== "video"; })
+      .filter(function (m) { return !withGroupOnly || m.groups.indexOf(group) >= 0; })
+      .map(function (m) { return '<option value="' + m.id + '">' + m.name + "</option>"; }).join("");
+  }
+  function calcCost() {
+    var m = D.models.filter(function (x) { return x.id === $("calcModel").value; })[0];
+    if (!m) return;
+    var g = curGroup(), ratio = g.ratio;
+    var ci = (parseInt($("calcIn").value || 0, 10) / 1e6) * m.input * ratio;
+    var co = (parseInt($("calcOut").value || 0, 10) / 1e6) * m.output * ratio;
+    $("calcCost").textContent = yuan4(ci + co);
+    $("calcCi").textContent = yuan4(ci);
+    $("calcCo").textContent = yuan4(co);
+  }
+  /* SECTION: calculator events */
+  ["calcModel", "calcIn", "calcOut"].forEach(function (id) {
+    $(id).addEventListener("input", calcCost);
+    $(id).addEventListener("change", calcCost);
+  });
+
+  function renderAll() { renderGroupTabs(); renderPrices(); fillModelSelect($("calcModel"), false); fillModelSelect($("callModel"), true); calcCost(); if (st) renderConsole(); }
+
+  /* SECTION: console state */
+  function defaultState() {
+    return {
+      user: "dev@xingshu.demo", balance: 0, spend: 0, calls: 0,
+      keys: [],
+      logs: D.seedLogs.map(function (l) { return { t: l.t, model: l.model, group: l.group, io: l.tin + " / " + l.tout, cost: l.cost, up: l.up }; })
+    };
+  }
+  function registerDemo() {
+    st = defaultState(); st.balance = 8.8;
+    store.save(st); renderConsole();
+    toast("注册成功（模拟）：赠送 ¥8.8 体验额度已到账");
+  }
+
+  /* SECTION: console render */
+  function renderConsole() {
+    if (!st) { $("loginPane").classList.remove("hidden"); $("dashPane").classList.add("hidden"); return; }
+    $("loginPane").classList.add("hidden"); $("dashPane").classList.remove("hidden");
+    $("whoami").textContent = st.user;
+    $("balance").textContent = yuan(st.balance);
+    $("stSpend").textContent = yuan(st.spend);
+    $("stCalls").textContent = st.calls;
+    $("stKeys").textContent = st.keys.filter(function (k) { return !k.off; }).length;
+    $("stRatio").textContent = curGroup().ratio + "×";
+
+    /* keys */
+    var tb = $("keyTable").querySelector("tbody");
+    $("keyEmpty").style.display = st.keys.length ? "none" : "block";
+    tb.innerHTML = st.keys.map(function (k, i) {
+      return '<tr class="key-row"><td><b>' + k.name + '</b></td><td><span class="mono">' + k.key.slice(0, 11) + "…" +
+        '</span> <button class="btn btn-ghost btn-sm" data-copy="' + i + '" style="padding:3px 9px">复制</button></td>' +
+        '<td><a href="#" data-quota="' + i + '" style="color:var(--amber)">' + (k.quota === null ? "不限（点击设置）" : "¥" + k.quota) + "</a></td>" +
+        '<td><button class="del" data-del="' + i + '">删除</button></td></tr>';
+    }).join("");
+    document.querySelectorAll("[data-quota]").forEach(function (b) {
+      b.addEventListener("click", function (e) {
+        e.preventDefault();
+        var k = st.keys[+b.dataset.quota];
+        var v = prompt("为该密钥设置额度上限（元），留空或 0 表示不限", k.quota === null ? "" : k.quota);
+        if (v === null) return;
+        var n = parseFloat(v);
+        k.quota = (!n || n <= 0) ? null : n;
+        store.save(st); renderConsole(); toast(k.quota === null ? "已设为不限额" : "额度上限已设为 ¥" + k.quota);
+      });
+    });
+    document.querySelectorAll("[data-copy]").forEach(function (b) {
+      b.addEventListener("click", function () { copy(st.keys[+b.dataset.copy].key, "密钥已复制到剪贴板"); });
+    });
+    document.querySelectorAll("[data-del]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        st.keys.splice(+b.dataset.del, 1); store.save(st); renderConsole(); toast("密钥已删除");
+      });
+    });
+
+    /* logs */
+    var ltb = $("logTable").querySelector("tbody");
+    $("logEmpty").style.display = st.logs.length ? "none" : "block";
+    ltb.innerHTML = st.logs.slice(0, 20).map(function (l) {
+      var cls = l.up.indexOf("国产") >= 0 ? "src-green" : l.up.indexOf("云厂商") >= 0 ? "src-purple" : "src-blue";
+      return "<tr><td>" + l.t + '</td><td><b>' + l.model + "</td><td>" + l.group + "</td><td>" + l.io +
+        "</td><td>" + yuan4(l.cost) + '</td><td><span class="upstream-tag ' + cls + '">' + l.up + "</span></td></tr>";
+    }).join("");
+
+    renderChart();
+  }
+
+  function renderChart() {
+    var bars = D.seedSpend.map(function (v, i) { return { d: "周" + "一二三四五六"[i], v: v }; });
+    bars.push({ d: "今天·真实", v: st ? st.spend : 0 });
+    var max = Math.max(1, bars.map(function (b) { return b.v; }).reduce(function (a, c) { return Math.max(a, c); }, 0));
+    $("spendChart").innerHTML = bars.map(function (b) {
+      var h = Math.max(2, Math.round((b.v / max) * 108));
+      return '<div class="col"><div class="bar-v" style="height:' + h + 'px"></div><span>' + b.d + "</span><span>" + yuan(b.v) + "</span></div>";
+    }).join("");
+  }
+
+  /* SECTION: console actions */
+  $("btnLogin").addEventListener("click", function () {
+    st = st || defaultState();
+    if (!st.user) st.user = $("loginUser").value || "dev@xingshu.demo";
+    store.save(st); renderConsole(); toast("登录成功（本地模拟）");
+  });
+  $("lnkReg").addEventListener("click", function (e) { e.preventDefault(); registerDemo(); });
+
+  $("btnGenKey").addEventListener("click", function () {
+    var n = st.keys.length + 1;
+    var hex = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 8);
+    st.keys.push({ name: "密钥-" + ("00" + n).slice(-3), key: "sk-xs-" + hex, quota: null });
+    store.save(st); renderConsole(); toast("已生成密钥（演示值，正式版本由服务端签发）");
+  });
+
+  $("btnCall").addEventListener("click", function () {
+    if (!st) return;
+    var m = D.models.filter(function (x) { return x.id === $("callModel").value; })[0];
+    if (!m) { toast("当前分组没有可调用模型，请切换分组"); return; }
+    var g = curGroup(), ratio = g.ratio;
+    var tin = Math.max(0, parseInt($("callIn").value || 0, 10));
+    var tout = Math.max(0, parseInt($("callOut").value || 0, 10));
+    var cost = (tin / 1e6) * m.input * ratio + (tout / 1e6) * m.output * ratio;
+    if (cost > st.balance) { toast("余额不足：本次需 " + yuan4(cost) + "，请先充值"); return; }
+    st.balance -= cost; st.spend += cost; st.calls += 1;
+    var up = g.id === "cn" ? "国产官方 API · 已备案" : g.id === "cloud" ? "云厂商托管通道" : g.id === "trial" ? "体验池 · 共享额度" : "官转 · " + m.vendor + " 直连";
+    var now = new Date();
+    var ts = (now.getMonth() + 1) + "-" + now.getDate() + " " + ("0" + now.getHours()).slice(-2) + ":" + ("0" + now.getMinutes()).slice(-2);
+    st.logs.unshift({ t: ts, model: m.name, group: g.name, io: tin + " / " + tout, cost: cost, up: up });
+    store.save(st); renderConsole();
+    toast("调用完成（模拟）：扣费 " + yuan4(cost) + " · 上游已写入日志");
+  });
+
+  /* SECTION: recharge modal */
+  var amt = 50, payName = "支付宝";
+  $("btnRecharge").addEventListener("click", function () {
+    $("amtRow").innerHTML = [10, 50, 100, 500].map(function (a) {
+      return '<button data-amt="' + a + '" class="' + (a === amt ? "on" : "") + '">¥' + a + "</button>";
+    }).join("");
+    $("payOptRow").innerHTML = D.payments.map(function (p) {
+      return '<button data-pay="' + p.name + '" class="' + (p.name === payName ? "on" : "") + '">' + p.name + "</button>";
+    }).join("");
+    document.querySelectorAll("[data-amt]").forEach(function (b) {
+      b.addEventListener("click", function () { amt = +b.dataset.amt; renderSel(); });
+    });
+    function renderSel() {
+      document.querySelectorAll("[data-amt]").forEach(function (b) { b.classList.toggle("on", +b.dataset.amt === amt); });
+      document.querySelectorAll("[data-pay]").forEach(function (b) { b.classList.toggle("on", b.dataset.pay === payName); });
+    }
+    document.querySelectorAll("[data-pay]").forEach(function (b) {
+      b.addEventListener("click", function () { payName = b.dataset.pay; renderSel(); });
+    });
+    $("modal").classList.remove("hidden");
+  });
+  $("btnPayCancel").addEventListener("click", function () { $("modal").classList.add("hidden"); });
+  $("btnPayOk").addEventListener("click", function () {
+    st.balance += amt; store.save(st); renderConsole();
+    $("modal").classList.add("hidden");
+    toast("模拟支付成功：¥" + amt + " 额度已通过「" + payName + "」到账");
+  });
+
+  /* SECTION: export & misc */
+  $("btnExport").addEventListener("click", function () {
+    var rows = [["时间", "模型", "分组", "输入/输出token", "费用(元)", "上游来源"]].concat(
+      st.logs.map(function (l) { return [l.t, l.model, l.group, l.io, l.cost.toFixed(4), l.up]; }));
+    var csv = "\uFEFF" + rows.map(function (r) { return r.join(","); }).join("\n");
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    a.download = "星枢调用账单.csv"; a.click(); URL.revokeObjectURL(a.href);
+    toast("账单已导出（含每条真实上游）");
+  });
+  $("btnLogout").addEventListener("click", function () { st.user = ""; store.save(st); renderConsole(); toast("已退出，本地数据仍保留"); });
+  $("btnReset").addEventListener("click", function () { localStorage.removeItem(LS); st = null; renderConsole(); toast("演示数据已清空"); });
+
+  function copy(text, msg) {
+    if (navigator.clipboard) { navigator.clipboard.writeText(text).then(function () { toast(msg); }, function () { toast(text); }); }
+    else toast(text);
+  }
+
+  /* SECTION: init */
+  fillModelSelect($("calcModel"), false);
+  renderAll();
+  renderConsole();
+})();
+
+</script>
+</body>
+</html>
